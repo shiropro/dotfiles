@@ -1,0 +1,173 @@
+! xterm/uxterm 设置
+! https://wiki.archlinux.org/index.php/Xterm 完整参阅 xterm（1）
+! https://www.x.org/archive/X11R6.7.0/doc/xterm.1.html
+!
+
+! 不要在 ~/.bashrc 或 ~/.bash_profile 或类似文件中设置 TERM 变量
+! 让终端本身来向系统报告正确的 TERM，进而使用正确的 terminfo 文件
+! 可用 terminfo 名是 xterm 和 xterm-256color，设置如下：
+XTerm.termName: xterm-256color
+UXTerm.termName: xterm-256color
+
+XTerm.utf8: true
+XTerm.utf8Title: true
+! 如不使用 UTF-8，则可能需强制 xterm 严格遵循您的语言环境：
+XTerm.vt100.locale: true
+UXTerm.vt100.locale: true
+
+! - Fonts ---------------------------------------------------------------------
+XTerm*fontWarnings: 2
+! xterm 默认字体是由X Logical Font Description alias fixed 命名的 bitmap font
+! 通常解析为：
+! -misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-iso8859-?
+!
+! This font, also aliased to the name 6x13, has remakably wide coverage for unicode glyphs.
+! The default "TrueType" font is the 14‑point font matched by the name mono.
+! The FreeType font that will be used can be found with this command:
+! 此字体也是名称为 6x13 的别名，对unicode字形具有可重新覆盖的宽范围。
+! 默认的“TrueType”字体是名称mono匹配的14磅字体。使用以下命令找到将使用的 FreeType 字体
+!   $ fc-match mono
+! 要进行测试，还可以在命令行上设置字体：-fa表示faceName，-fn表示字体。
+! 如果设置两种字体，则可以通过从#VT字体菜单切换TrueType字体来在两种字体之间切换。
+! 您还可以使用以下资源选择默认值
+! faceName 只需指定一个即可，多了即使逗号分隔也会被 xterm 忽略
+XTerm.vt100.renderFont: true
+XTerm.*.faceName: monospace
+!XTerm.*.boldFont: monospace:style=Bold
+XTerm.*.faceSize: 10
+UXTerm.*.faceName:monospace
+UXTerm.*.faceSize: 10
+! 如经常使用双宽 CJK 字形，选择其他终端（如urxvt）可能更好
+! xterm 中使用带 CJK 的位图 XLFD 字体有许多缺陷
+! 用 faceNameDoublesize 资源指定 TrueType 字体进行 CJK 显示是简单的解决办法
+!XTerm.*.faceNameDoublesize: Noto Sans Mono
+! 行距
+!XTerm.scaleHeight: 1.0
+! 可视化铃声字符
+XTerm.vt100.bellIsUrgent: true
+! Disable bold font faces, instead make text light blue.
+! 原因：使用小字体时，粗体或斜体可能难以阅读
+!XTerm.vt100.colorBDMode: true
+!XTerm.vt100.colorBD: rgb:82/a4/d3
+! Disable underlined text, instead make it white.
+!XTerm.vt100.colorULMode: true
+!XTerm.vt100.colorUL: rgb:e4/e4/e4
+! 类似的，colorIT 对应斜体
+
+! - Colors --------------------------------------------------------------------
+! 反转前景色/背景色:
+! XTerm.vt100.reverseVideo: true
+
+! - Menus ---------------------------------------------------------------------
+! xterm编译的时候禁用了工具栏或菜单栏。在xterm窗口中按Ctrl + MouseButton时，菜单可作为弹出窗口。菜单项调用的操作通常可以使用命令行选项或通过设置资源值来完成。
+! 提示：如果弹出菜单窗口仅显示为小框，则可能是因为您的资源文件中有一行类似于XTerm*geometry：80x32的行。这确实在80列32行主窗口中启动xterm，但它也强制菜单窗口为80像素×32像素！这就是您应该完全指定资源的原因：
+!XTerm.vt100.geometry: 80x40
+!UXTerm.vt100.geometry: 80x40
+*.vt100.geometry: 96x42
+!  2.3.1 主选项菜单
+!  2.3.2 VT选项菜单
+!  2.3.3 VT字体菜单
+!  2.3.4 Tek选项菜单
+
+! - Key bindings --------------------------------------------------------------
+! xterm 默认 Alt 键行为是一修饰符，用于发送 eight bit input characters
+! 如 <Alt>+F 插入 æ
+! 要像 gnome-terminal 和 konsole 一样让 <Alt> 发送 ^[ （转义）键，设置：
+XTerm.vt100.metaSendsEscape: true
+UXTerm.vt100.metaSendsEscape: true
+! <BackSpace> 和 Emacs 上的 <Ctrl>+H 组合键冲突
+! Arch Linux 上（OpenSUSE 上也是）xterm 按下 <BackSpace> 发送 ^H，可以改成 ^？：
+!XTerm.vt100.backarrowKey: false
+!XTerm.ttyModes: erase ^?
+! xterm 定义了一整套用于操纵终端的“动作”，例如copy-selection()，hard-reset()，scroll-back()等
+! 可使用翻译资源将这些操作映射到鼠标/键组合
+! 例如可以映射 <Ctrl>+M 和 <Ctrl>+R 以最大化/恢复窗口：
+!XTerm.vt100.translations: #override \n!    Ctrl <Key>M: maximize() \n!    Ctrl <Key>R: restore()
+! #override 表示这些绑定覆盖任何现有绑定。每个绑定必须由转义序列分隔 \n
+! 有关操作的完整列表和许多示例，参阅xterm(1)的KEY BINDINGS部分。
+! 提示：还可以在其间切换单独的键绑定组。请参见手册页中的 keymap() 操作
+
+! - Scrolls -------------------------------------------------------------------
+! 在 off-screen lines 上下滚动，可:
+!   - 鼠标滚轮
+!   - <Shift> + <PageUp> 和 <Shift> + <PageDown>
+!   - 滚动条
+! 默认保存 1024 行
+XTerm.vt100.saveLines: 10240
+UXTerm.vt100.saveLines: 10240
+! 启用并通过资源设置调整外观（注意"scrollBar"和"scrollbar",前者"B"是大写，后者全小写）：
+XTerm.vt100.scrollBar: true
+UXTerm.vt100.scrollBar: true
+! 指定滚动条是否应显示在右侧而不是左侧。默认值为“false”。
+XTerm.vt100.rightScrollBar: true
+UXTerm.vt100.rightScrollBar: true
+! Specifies the width of the scrollbar border. Note that this is drawn to overlap the border of the xterm window. Modifying the scrollbar s border affects only the line between the VT100 widget and the scrollbar. The default value is 1.
+! 指定滚动条边框的宽度。请注意，这是为了重叠xterm窗口的边框。修改滚动条的边框仅影响VT100小部件和滚动条之间的线。默认值为1。
+!XTerm.vt100.scrollBarBorder: 2
+XTerm.vt100.scrollbar.width: 8
+UXTerm.vt100.scrollbar.width: 8
+! 关于具体的资源设置，参见xterm(1)
+! 滚动条的操作方式与您习惯使用的方式不同。
+!    向下滚动：
+!     - 用鼠标左键单击滚动条，或
+!     - 用鼠标中键单击拇指下方的滚动条。
+!    向上滚动：
+!     - 用鼠标右键单击滚动条，或
+!     - 用鼠标中键单击拇指上方的滚动条。
+!    要定位文本，向两个方向移动：
+!     - 抓住thumb并使用鼠标中键“点击并拖动”。
+
+! - Copy/Paste ----------------------------------------------------------------
+! 鼠标选中的文本会变成高亮，同时内容被复制，中键粘贴相应的文本
+! <Shift> + <Insert> 也有相同的效果，但仅限于 xterm 内
+! xterm 默认和 X 下运行的许多其他程序一样，把突出显示的文本复制到名为 PRIMARY 选择的缓冲区
+! PRIMARY 是暂时的，只要突出显示另一段文本，原先的内容就会立即被新的 PRIMARY 选择取代
+! 某些应用程序允许您使用鼠标中键而不是 Shift + Insert 粘贴 PRIMARY 选项，
+! 某些应用程序可能不允许
+! 还有另一缓冲区 CLIPBOARD， CLIPBOARD 中文本长期存在，在用户主动覆盖它之前一直可用
+! Ctrl + C Ctrl + X  Ctrl + V 文本复制、剪切、粘贴
+! xterm 允许用户使用#VT选项菜单上的选择到剪贴板，
+! 或使用 XTerm.vt100.selectToClipboard 资源在 PRIMARY 和 CLIPBOARD 间切换：
+XTerm.*.selectToClipboard: CLIPBOARD
+! 报警告 Warning: Cannot convert string "CLIPBOARD" to type Boolean
+
+! 这样设置中只能 PRIMARY and CLIPBOARD 二选一，通过覆盖#Key绑定即可释放鼠标左键同时用：
+! 警告: xterm-336 开始，此方法不再可靠，参阅 https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=901249#35
+! <Btn1Up>: select-end(PRIMARY, CLIPBOARD, CUT_BUFFER0)
+
+! - 添加类似其他终端的复制/粘贴的按键绑定（ Ctrl Shift C 复制 等等）：
+XTerm.vt100.translations: #override \n Shift Ctrl <KeyPress> v: insert-selection(CLIPBOARD)\n Shift Ctrl <KeyPress> c: copy-selection(CLIPBOARD)\n
+
+! - 选择文本
+! 可用鼠标左键 “单击并拖动” 选择文本，双击选择一个单词，
+! 单词被定义为连续的字母字符加下划线，或基本正则表达式（BRE）[A-Za-z_]
+! 三击选择一行，“制表符” 通常复制为多个 “空格” 字符。
+! 另一种选择文本的方法是（在复制多个全屏时特别有用）：
+!   1. 鼠标左键选择的内容开头
+!   2. 滚动到你要的的位置
+!   3. 鼠标右键选择的内容末尾
+!   可以随时右键来扩展或缩短任何突出显示的选项
+!   可在 xterm 窗口任何位置左键单击清除任何选定的文本
+! 基于字符的应用程序在xterm内运行时可以接收到鼠标事件。
+! 但如果程序无法与X11剪贴板通信，则可能会出现问题。为了将这些事件传递给下层的xterm，必须按着Shift键。
+! 如在 links 浏览器（不是xlinks -g）中，可以鼠标单击URL和菜单项，但不能用鼠标中键选择或粘贴。
+! 要进行复制-粘贴的操作，按下<Shift>的同时鼠标单击（只需要在单击的时候按下<Shift>，在拖动鼠标选择（例如，文本块）时无需按住它）
+
+! - Tek 4014 demonstration ----------------------------------------------------
+! 如果安装了plotutils，可使用 xterm 的 Tektronix 4014 仿真来查看一些 plotutils 软件包的测试文件
+! 从 #VT 选项菜单项切换到Tek模式打开 Tek 窗口或使用此命令启动新的 xterm 实例：
+!   xterm -t -tn tek4014
+! Your PS1 prompt will not render correctly, if it appears at all. In the new window, enter the command,
+! 如果PS1提示完全出现，则无法正确呈现。在新窗口中，输入命令，
+! cat /usr/share/tek2plot/dmerc.tek
+! A world map will appear in the Tek window. You can also view other *.tek files from that same directory.
+! To close the Tek window, one can use the xterm menus.
+! 世界地图将出现在Tek窗口中。您还可以从同一目录中查看其他* .tek文件。要关闭Tek窗口，可以使用xterm菜单。
+
+! - 防止X11输入侦听（Protect against X11 input snooping）------------------------
+! 从#Main选项菜单激活安全键盘模式可能不方便。您可以使用#Key绑定调用secure()操作：
+! Ctrl Alt <Key>S: secure()
+
+! Allow sixel graphics (Try: "convert -colors 16 foo.jpg sixel:-")
+! See also https://github.com/hackerb9/lsix#your-terminal-must-support-sixel-graphics
+xterm*decTerminalID	: vt340

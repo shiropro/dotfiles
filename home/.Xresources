@@ -1,0 +1,78 @@
+! ~/.Xresources X 客户端应用程序配置参数 https://wiki.archlinux.org/index.php/x_resources
+
+! - 多数 Display Manager 在登录时加载 .Xresources 文件
+! - 如当前 session 尚未使用 xrdb，那么 X11 程序启动时读取较旧的 .Xdefaults
+!
+! - Defaults
+! 查看已安装 X11 应用程序的默认设置: /usr/share/X11/app-defaults/
+! 程序特定资源的详细信息通常在手册页中提供，xterm 手册页是包含 X 资源列表及默认值的例子。
+! 查看当前加载的资源: xrdb -query -all
+!
+! - Grammar
+! name.Class.resource: value
+! 例：
+! xscreensaver.Dialog.headingFont: -*-fixed-bold-r-*-*-*-100-*-*-*-*-iso8859-1
+!  1) name
+!     应用程序的名称，例如 xterm，xpdf 等
+!  2) class
+!     用于将资源组合在一起的分类。类名通常大写开头
+!  3) resource
+!     具体资源的名称，通常是小写的，带有大写连接（uppercase concatenation）
+!  4) value
+!     资源取值。通常是以下3类：
+!     - 整数
+!     - 布尔值（true/false, yes/no, on/off）
+!     - 字符串（比如一个单词white，一种颜色#ffffff，或者一个路径/usr/bin/firefox）
+!  5) delimiters
+!     点（.）用于表示层次结构中的每个步骤，上面的例子中，
+!     从 name 开始，然后下降到Class，最后到资源本身。
+!     冒号（:) 用于将资源声明与实际值分开
+!
+! - wildcard matching
+! 问号（?）星号（*）可作通配符从而允许一条规则匹配不同应用程序或元素
+! ? 匹配任何单个组件名，而 * 表示任意数量 intercening 组件，包括 none
+! 用前面的例子，如果要将相同的字体应用于包含类名Dialog的所有程序（不仅仅是XScreenSaver），
+! 其中包含资源名称headingFont，可以写作：
+! ?.Dialog.headingFont:     -*-fixed-bold-r-*-*-*-100-*-*-*-*-iso8859-1
+! 如果将同一规则应用于包含资源 headingFont 的所有程序，无论 class ，则：
+! *headingFont:    -*-fixed-bold-r-*-*-*-100-*-*-*-*-iso8859-1
+! 通配符匹配规则更多信息参阅 XrmGetResource（3）
+
+
+! - Fonts ---------------------------------------------------------------------
+! 常规 X resources 字体设置
+*.faceSize: 10
+*.faceName: monospace
+*.boldFont: monospace:style=Bold
+
+! suckless 软件 xresource 补丁的一般通用字体设置:
+!*.font: monospace:style=Medium:size=10
+*.font: monospace-10
+
+! - colors --------------------------------------------------------------------
+! 如已安装 emacs 或 vim，可检查 /usr/share/emacs/*/etc/rgb.txt 或 /usr/share/vim/*/rgb.txt
+! 查看带有十进制RGB值的颜色名称列表
+!
+! 某些程序（如 i3wm）只认不鼓励的旧语法，即#xxxxxx 形式
+! 不能用建议的新语法 rgb:xx/xx/xx 和 black 之类名称
+!
+! X 资源文件中指定颜色时不指定应用程序类或应用程序实例：
+!   *foreground: ...
+! 可以为使用这些资源的所有 Xlib 应用程序（xclock，xfontsel和其他）设置对应值
+! 单独指定 (以 i3wm 为例) 的格式:
+! i3wm.foreground : xxx
+! ...
+! i3wm.color0     : yyy
+! ...
+!
+! 颜色语法完整描述参见 xorg-docs 中的 X（7）
+! 配色方案建议可以在论坛帖子 Terminal Terminal Scheme 中查看:
+! https://bbs.archlinux.org/viewtopic.php?id=51818&p=1
+
+! - includes ------------------------------------------------------------------
+! NOTE: 需安装 C 预处理器（如 GNU CPP）才能使用 include 功能
+!#include ".Xresources.d/colorschemes/default"
+#include ".Xresources.d/colorschemes/kano"
+!#include ".Xresources.d/colorschemes/tomorrow_night_bright"
+#include ".Xresources.d/suckless"
+#include ".Xresources.d/xterm"

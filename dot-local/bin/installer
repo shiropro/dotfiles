@@ -1,0 +1,287 @@
+#!/bin/sh
+print_space() {
+    local _space_n=$1
+    local i=0
+    while [ $((i++)) -lt ${_space_n:=1} ]; do printf ' '; done
+}
+
+color_echo() {
+    local _reset='\e[0m'
+    local _n=$1 && shift
+    case "$_n" in
+    [0-6]) printf '\e[3%sm%b%b' "$_n" "$*" "$_reset" ;;
+    7 | "fg") printf '\e[37m%b%b' "$*" "$_reset" ;;
+    *) printf '\e[38;5;%bm%b%b' "$_n" "$*" "$_reset" ;;
+    esac
+}
+
+color_print() {
+    [ $# -le 0 ] && echo 'arguments less than zero' && return 1
+    local inf_lv=$1
+    shift
+    local info="$*"
+    case $inf_lv in
+    # -i|--info   ) printf  "%s$(color_echo 4 %s %b)\n" \
+    #                       "$(readlink -f ${0})" '=>' "$info"
+    # ;;
+    # -s|--sucess ) printf  "%s$(color_echo 2 %s %b)\n" \
+    #                       "$(readlink -f ${0})" '[✔]+>' "$info"
+    # ;;
+    # -w|--warn   ) printf  "%s$(color_echo 3 %s %b)\n" \
+    #                       "$(readlink -f ${0})" '?>' "$info"
+    # ;;
+    # -e|--error  ) printf  "%s$(color_echo 1 %s %b)\n" \
+    #                       "$(readlink -f ${0})" '!>' "$info"
+    # ;;
+    # *) info=$inf_lv; printf "%s$(color_echo fg %s %b)\n" \
+    #                       "$(readlink -f ${0})" '->' "$info"
+    # ;;
+    -i | --info) printf "%s$(color_echo 4 %s %b)\n" '📨' '=>' "$info" ;;
+    -s | --sucess) printf "%s$(color_echo 2 %s %b)\n" '✔️' '+>' "$info" ;;
+    -w | --warn) printf "%s$(color_echo 3 %s %b)\n" '🚨' '!>' "$info" ;;
+    -e | --error) printf "%s%s$(color_echo 1 %s %b)\n" '❌' 'x>' "$info" ;;
+    *)
+        info=$inf_lv
+        printf "%s%s$(color_echo fg %s %b)\n" '❓' '?>' "$info"
+        ;;
+    esac
+}
+
+color_print2() {
+    [ $# -le 0 ] && echo 'arguments less than zero' && return 1
+    local inf_lv=$1
+    shift
+    local info=$*
+    case $inf_lv in
+    -i | --info)
+        echo -e \\033\[44\;30mINFO\\033\[0m\\033\[47\;30m "$info"\\c
+        print_space $(($(stty size | cut --delimiter=\  -f2) - 12 - ${#info}))
+        echo -e \\033\[44\;30m\\033\[0m
+        ;;
+    -w | --warn)
+        echo -e \\033\[43\;30mWARN\\033\[0m\\033\[47\;30m "$info"\\c
+        print_space $(($(stty size | cut --delimiter=\  -f2) - 12 - ${#info}))
+        echo -e \\033\[43\;30m\\033\[0m
+        ;;
+    -e | --error)
+        echo -e \\033\[41\;37mERROR\\033\[0m\\033\[47\;30m "$info"\\c
+        print_space $(($(stty size | cut --delimiter=\  -f2) - 13 - ${#info}))
+        echo -e \\033\[41\;37m\\033\[0m
+        ;;
+    *)
+        info=$inf_lv
+        echo -e \\033\[47\;30m "$info"\\c
+        print_space $(($(stty size | cut --delimiter=\  -f2) - ${#info}))
+        echo -e \\033\[0m
+        ;;
+    esac
+}
+
+init_dir() {
+    if [ -d "$*" ]; then
+        rm -rf "$*" && mkdir -p "$*"
+    else
+        mkdir -p "$*"
+    fi
+}
+
+filename_prefix() { # "$@" URL or file path
+    basename "$*" |
+        sed -E 's/\.tar.*$//g' |
+        sed -E 's/\.zip$//g' |
+        sed -E 's/\.git$//g' |
+        sed -E 's/\.t[gx]z*$//g' |
+        sed -E 's/\.7z$//g'
+}
+
+_installer() {
+    [ $# -lt 2 ] && color_print -e "Insuffcient Args!" && return 1
+    ! command -v git > /dev/null 2>&1 && color_print -e "Git Required!" && return 1
+
+    # ! 初始化很重要！
+    unset _tmp_dir
+    unset _direct
+    unset _force
+    unset bin_name
+    unset _remove
+
+    # ! 最后一个选项必须是 URL
+    while [ "$1" ]; do
+        case "$1" in
+        # not works for directly install mode
+        -[lL] | --local)
+            shift && local _tmp_dir=$(mktemp -d)
+            ;;
+        -[nN] | --no-compile)
+            shift && local _direct=y
+            ;;
+            # only works for no compile mode
+        -[iI] | --install-dir)
+            shift && local ins_d="${1:?no ins prefix}" && shift
+            ;;
+            # --install-dir=*) local ins_d="$(_kano_ExtVal "$1")" && shift
+            #   ;;
+        -[cC] | --command)
+            shift && local _cmd="${1:?no compile cmd}" && shift
+            ;;
+            # --command=*) local _cmd="$(_kano_ExtVal "$1")" && shift
+            #   ;;
+        -[uUfF] | --update | --force)
+            shift && local _force=y
+            ;;
+        --bin | --bin-name)
+            shift && local bin_name="${1:?no binary}" && shift
+            ;;
+        -[rR] | --remove | --uninstall)
+            shift && local _remove=y
+            ;;
+        *)
+            local _url="$1" && shift
+            ;;
+        esac
+    done
+
+    # preprocess
+    local _name=$(basename "$_url")
+    local bin_name=${bin_name:-$(filename_prefix "$_url")}
+
+    local repo_d="$_tmp_dir$(tmp_dir "$_url")"
+    # 如果之前没建过这个文件夹，说明链接变了或者版本新了，强制安装
+    [ ! -d "$repo_d" ] && local _force=y
+    local ins_d="${ins_d:-${_kano_PREFIX:-~/.local}/bin}"
+    local src_d="$repo_d/$bin_name"
+
+    # 1. 不给出 binary name 默认使用 basename
+    # 2. 指定为 none 表示没有 binary 可检查
+    if [ "$bin_name" != "none" ] && [ "$_force" != "y" ] && command -v $bin_name > /dev/null 2>&1; then
+        # 尝试这输出这个程序的版本信息，但因为格式不统一，不一定成功
+        # FIXME: 解决不了
+        # local _ver_info='unknown version'
+        # $bin_name --version > /dev/null 2>&1 && _ver_info=$($bin_name --version)
+        # color_print -i "\n$_ver_info\n → $(command -v $bin_name)\n"
+        color_print -w "ALREADY INSTELLED → $(command -v $bin_name)\n"
+        [ "$_remove" != "y" ] && return 0
+    fi
+
+    # 重写命令
+    if [ "$_remove" != "y" ]; then
+        # _cmd="cd \"$src_d\" && make clean||true${_cmd:+" && $_cmd"}"
+        _cmd="cd \"$src_d\" ${_cmd:+" && $_cmd"}"
+    else
+        _cmd="cd \"$src_d\" ${_cmd:+" && ${_cmd}"} && make -j uninstall && make -C ./build -j uninstall"
+    fi
+
+    [ ! -d $_tmp_dir ] && mkdir $_tmp_dir
+    [ ! -d "$ins_d" ] && mkdir -p "$ins_d"
+
+    # 压缩包还是 raw？
+    case "$(printf "%s\n" "$_url" | rev | cut -s -d. -f1 | rev)" in
+    [gx7]z | t[gx]z | bz2 | zip | tar) local file_t=tarball ;;
+    git | *) local file_t=raw ;;
+    esac
+
+    # unarchive tarball
+    if [ "$file_t" = "tarball" ]; then
+        init_dir "$src_d" &&
+            dl "$_url" "$repo_d" &&
+            smartar x "$repo_d/$_name" "$src_d" --flat
+    fi
+
+    # directly (un)install from tarball
+    if [ "$_direct" ] && [ "$file_t" = "tarball" ]; then
+        if [ "$_remove" != "y" ]; then
+            color_print -i "[Install $_name]\nFrom : $_url\nTo: $ins_d"
+            if ls "$src_d"/* >/dev/null 2>&1; then
+                cp -rf "$src_d"/* "$ins_d"/
+                return 0
+            else
+                color_print -e "NOTHING to install"
+                return 1
+            fi
+        else
+            color_print -w "[UNinstall $_name]\nFrom : $ins_d"
+            for _f in "$src_d"/*; do
+                rm -rf "$ins_d/$(basename $_f)"
+                unset _f
+                return 0
+            done
+            rm -rf "$src_d"
+        fi
+    fi
+
+    # directly (un)install from raw
+    if [ "$_direct" ] && [ "$file_t" = "raw" ]; then
+        if [ "$_remove" != "y" ]; then
+            color_print -i "[Directly install $_name]\nFrom: $_url\nTo: $ins_d"
+            dl "$_url" "$ins_d"
+            [ "$_name" != "$bin_name" ] && mv -f "$ins_d/$_name" "$ins_d/$bin_name"
+            [ -s "$ins_d/$bin_name" ] && chmod +x "$ins_d/$bin_name"
+            return 0
+        else
+            color_print -w "[UNinstall $_name]\nFrom: $ins_d"
+            rm -rf "$ins_d/$bin_name"
+            return 0
+        fi
+    fi
+
+    # todo rpm 包安装功能
+    # *.rpm
+    # rpm -i "$repo_d/$_name"
+    # todo deb 包安装功能
+    # *.deb
+    # dpkg -i "$repo_d/$_name"
+    #
+
+    # ! 只在编译期间设置这些变量
+
+    # C_INCLUDE_PATH=\
+    # ~/.local/include:\
+    # ~/include:~/netbsd/pkg/include:\
+    # $C_INCLUDE_PATH
+
+    # CPLUS_INCLUDE_PATH=~/.local/include:\
+    # ~/include:\
+    # ~/netbsd/pkg/include:\
+    # $CPLUS_INCLUDE_PATH
+
+    # LD_LIBRARY_PATH=\
+    # ~/.local/lib:\
+    # ~/lib:\
+    # ~/netbsd/pkg/lib:\
+    # $LD_LIBRARY_PATH
+
+    # LIBRARY_PATH=\
+    # ~/.local/lib:\
+    # ~/lib:\
+
+    export PKG_CONFIG_PATH=~/.local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:$(pkg-config --variable pc_path pkg-config):$PKG_CONFIG_PATH
+
+    # - 覆盖 pkg-config
+    # -----------------------------------------------------------------------------
+    # export XFT_CFLAGS="-I$HOME/.local/include"
+    # export XFT_LIBS="-L$HOME/.local/lib -lxft"
+    # export XRENDER_CFLAGS="-I$HOME/.local/include"
+    # export XRENDER_LIBS="-L$HOME/.local/lib -lXrender"
+    # export FREETYPE_CFLAGS="-I/usr/include/freetype2"
+    # export FREETYPE_LIBS="-L/usr/lib -lfreetype"
+    # export FONTCONFIG_CFLAGS="-I/usr/include"
+    # export FONTCONFIG_LIBS="-L/usr/lib -lfontconfig"
+    # export XFT_CFLAGS="-I$HOME/.local/include"
+
+    # git compile/make uninstall
+    [ ! "$_direct" ] && [ "$file_t" = "raw" ] && smart-clone "$_url" "$repo_d" "$bin_name"
+    if [ "$_remove" != "y" ]; then
+        color_print -i "[Compile $bin_name]\nFrom: $_url\nAt: $src_d"
+        init_dir "$src_d/build"
+        # ? ./configure seems to pop up all directories
+        sh -c "$_cmd"
+    else
+        color_print -w "[Try MAKE UNINSTALL $bin_name]\nFrom:\n$src_d\n$src_d/build"
+        sh -c "$_cmd"
+        # make -C "$src_d/build" uninstall
+        # make -C "$src_d" uninstall
+    fi
+    unset PKG_CONFIG_PATH
+}
+
+_installer "$@"

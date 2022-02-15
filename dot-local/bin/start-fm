@@ -1,0 +1,41 @@
+#!/bin/sh
+# -----------------------------------------------------------------------------
+# - will auto select ranger preview_images_method by terminal type
+# -----------------------------------------------------------------------------
+# 避免在 ranger 启动的 shell 内创建新的 ranger
+[ -n "$RANGER_LEVEL" ] && exit 1
+
+_term_w=$(stty size | awk '{printf $2}')
+_term_h=$(stty size | awk '{printf $1}')
+
+unset _layout
+[ $_term_w -gt 120 ] && _layout=1,1,1,3,4
+# [ $_term_w -le 80 ] && _layout=
+
+# Automatically change the directory in bash after closing ranger
+#
+# Compatible with ranger 1.4.2 through 1.7.*
+# This is a bash function for .bashrc to automatically change the directory to
+# the last visited one after ranger quits.
+# To undo the effect of this function, you can type "cd -" to return to the
+# original directory.
+ranger_cd() {
+    local tmp_f="$(mktemp -t tmp.XXXXXX)"
+    exec ranger --choosedir="$tmp_f" "${@:-$(pwd)}"
+    test -f "$tmp_f" &&
+        if [ "$(cat -- "$tmp_f")" != "$(echo -n $(pwd))" ]; then
+            cd -- "$(cat "$tmp_f")"
+        fi
+    rm -f -- "$tmp_f"
+}
+
+pre_method=w3m
+
+command -v ueberzug 2>&1 >/dev/null && [ ! "$SSH_CONNECTION" ] &&
+    pre_method=ueberzug
+
+case $TERM in
+# ! DO NOT Pass $@ to ranger
+*kitty*) ranger_cd --cmd="set preview_images_method kitty" ${_layout:+--cmd="set column_ratios $_layout"} "$@" ;;
+*) ranger_cd --cmd="set preview_images_method $pre_method" ${_layout:+--cmd="set column_ratios $_layout"} "$@" ;;
+esac

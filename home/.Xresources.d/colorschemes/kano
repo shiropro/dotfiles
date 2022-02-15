@@ -1,0 +1,61 @@
+#define kano_fore   #f9cec0
+#define kano0       #544b49
+#define kano1       #a55344
+#define kano2       #a8b55e
+#define kano3       #e3b27d
+#define kano4       #6d94c4
+#define kano5       #6a6dac
+#define kano6       #00b8b4
+#define kano7       #fde2c9
+#define kano8       #6c524b
+#define kano9       #f7ac90
+#define kano10      #91dc84
+#define kano11      #e7c5a4
+#define kano12      #bad5e2
+#define kano13      #897ed8
+#define kano14      #4fdad5
+#define kano15      #fdf2e4
+
+! *foreground      : rgb:f9/ce/c0
+! *background      : rgb:00/00/00
+! *selforeground   : rgb:00/00/00
+! *selbackground   : rgb:f9/ce/c0
+! *cursorColor     : rgb:f9/ce/c0
+! *color0          : rgb:54/4b/49
+! *color1          : rgb:a5/53/44
+! *color2          : rgb:a8/b5/5e
+! *color3          : rgb:e3/b2/7d
+! *color4          : rgb:6d/94/c4
+! *color5          : rgb:6a/6d/ac
+! *color6          : rgb:00/b8/b4
+! *color7          : rgb:fd/e2/c9
+! *color8          : rgb:6c/52/4b
+! *color9          : rgb:f7/ac/90
+! *color10         : rgb:91/dc/84
+! *color11         : rgb:e7/c5/a4
+! *color12         : rgb:ba/d5/e2
+! *color13         : rgb:89/7e/d8
+! *color14         : rgb:4f/da/d5
+! *color15         : rgb:fd/f2/e4
+! --------------------------------
+*foreground      : kano_fore
+*background      : #111111
+*selforeground   : #111111
+*selbackground   : kano_fore
+*cursorColor     : kano_fore
+*color0          : kano0
+*color1          : kano1
+*color2          : kano2
+*color3          : kano3
+*color4          : kano4
+*color5          : kano5
+*color6          : kano6
+*color7          : kano7
+*color8          : kano8
+*color9          : kano9
+*color10         : kano10
+*color11         : kano11
+*color12         : kano12
+*color13         : kano13
+*color14         : kano14
+*color15         : kano15
