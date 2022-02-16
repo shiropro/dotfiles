@@ -127,8 +127,6 @@ auto_start pasystray
 auto_start tilda
 auto_start nm-applet
 
-pcmanfm -d &
-
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
 
 # set dwm bar by shell script:
