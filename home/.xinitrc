@@ -223,3 +223,6 @@ esac
 #         no_exit_on_failed_exec=1
 #     fi
 # fi
+
+# cleanning
+pkill -15 -t tty"$XDG_VTNR" Xorg
