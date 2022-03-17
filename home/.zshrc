@@ -155,6 +155,7 @@ MAGIC_ENTER_GIT_COMMAND='git status -u .'
 # MAGIC_ENTER_OTHER_COMMAND='ls -h .'
 MAGIC_ENTER_OTHER_COMMAND='ls -lh .'
 
+ZSH_TMUX_AUTOSTART=true
 ZSH_TMUX_UNICODE=true # unicode support
 
 [ -s "$ZSH/oh-my-zsh.sh" ] && . $ZSH/oh-my-zsh.sh

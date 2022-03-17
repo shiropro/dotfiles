@@ -106,9 +106,9 @@ start_ibus() {
 }
 
 # xrdb 命令放到后台运行可能导致比 xrdb 晚启动的程序在资源加载完成前查找资源，产生问题。
-[ -s /etc/X11/xinit/.Xresources ] && xrdb /etc/X11/xinit/.Xresources
-[ -s $HOME/.Xresources ] && xrdb -merge -I$HOME $HOME/.Xresources # ! -merge 选项导致配色覆盖？
-[ -s $HOME/.Xresources.d/$(uname -n) ] && xrdb -merge $HOME/.Xresources.d/$(uname -n)
+# [ -s /etc/X11/xinit/.Xresources ] && xrdb /etc/X11/xinit/.Xresources
+# [ -s $HOME/.Xresources ] && xrdb -merge -I$HOME $HOME/.Xresources # ! -merge 选项导致配色覆盖？
+# [ -s $HOME/.Xresources.d/$(uname -n) ] && xrdb -merge $HOME/.Xresources.d/$(uname -n)
 
 unset my_ime
 start_fcitx
@@ -124,7 +124,6 @@ export XMODIFIERS="@im=$my_ime"
 auto_start slstatus
 auto_start copyq
 auto_start pasystray
-auto_start tilda
 auto_start nm-applet
 
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
@@ -134,9 +133,6 @@ auto_start nm-applet
 #     xsetroot -name "$(date)"
 #     sleep 1s
 # done &
-# tint2 &
-
-exist_cmd picom && picom -b
 
 # Activate asking for ssh passphrase
 # if test -S "$SSH_AUTH_SOCK" -a -x "$SSH_ASKPASS"; then

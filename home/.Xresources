@@ -74,5 +74,4 @@
 !#include ".Xresources.d/colorschemes/default"
 #include ".Xresources.d/colorschemes/kano"
 !#include ".Xresources.d/colorschemes/tomorrow_night_bright"
-#include ".Xresources.d/suckless"
 #include ".Xresources.d/xterm"
